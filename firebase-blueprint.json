@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and metadata including onboarding data",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "country": { "type": "string" },
+        "calculationMethod": { "type": "string" },
+        "fitnessLevel": { "type": "string" },
+        "careerGoal": { "type": "string" },
+        "points": { "type": "number" },
+        "level": { "type": "number" },
+        "streak": { "type": "number" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "onboardingComplete": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "createdAt"]
+    },
+    "SalatLog": {
+      "title": "Salat Log",
+      "description": "Log of completed prayers",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "prayerName": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string" },
+        "points": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Goal": {
+      "title": "Main Goal",
+      "description": "Career main goal",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "targetDate": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "SubGoal": {
+      "title": "Sub Goal",
+      "description": "Sub-goal under a main goal",
+      "type": "object",
+      "properties": {
+        "goalId": { "type": "string" },
+        "title": { "type": "string" },
+        "targetDate": { "type": "string" },
+        "isCompleted": { "type": "boolean" }
+      }
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Individual task under a sub-goal",
+      "type": "object",
+      "properties": {
+        "subGoalId": { "type": "string" },
+        "title": { "type": "string" },
+        "estimatedHours": { "type": "number" },
+        "isCompleted": { "type": "boolean" }
+      }
+    },
+    "HealthDaily": {
+      "title": "Health Daily Log",
+      "description": "One document per user per day for health tracking",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "workout_done": { "type": "boolean" },
+        "exercises_completed": { "type": "number" },
+        "workout_duration_minutes": { "type": "number" },
+        "glasses_water": { "type": "number" },
+        "breakfast": { "type": "boolean" },
+        "lunch": { "type": "boolean" },
+        "dinner": { "type": "boolean" },
+        "snack": { "type": "boolean" },
+        "sleep_hours": { "type": "number" },
+        "energy_level": { "type": "number" },
+        "weight": { "type": "number" },
+        "points_today": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Unified user profile and stats"
+    },
+    "salat_logs/{logId}": {
+      "schema": "SalatLog",
+      "description": "History of prayers"
+    },
+    "goals/{goalId}": {
+      "schema": "Goal",
+      "description": "Main carrer goals"
+    },
+    "subgoals/{subGoalId}": {
+      "schema": "SubGoal",
+      "description": "Subgoals linked to goals"
+    },
+    "tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Tasks linked to subgoals"
+    },
+    "health_daily/{docId}": {
+      "schema": "HealthDaily",
+      "description": "One document per user per day for health tracking"
+    },
+    "daily_logs/{docId}": {
+      "schema": "object",
+      "description": "Daily aggregated logs for water, habits, sunnah acts, adhkar, and body progress"
+    },
+    "badges/{badgeId}": {
+      "schema": "object",
+      "description": "Unlocked badges"
+    }
+  }
+}

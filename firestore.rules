@@ -1,0 +1,171 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Entity Validation ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'email', 'createdAt']) 
+        && data.keys().size() <= 15
+        && data.name is string && data.name.size() <= 100
+        && data.email is string && data.email.size() <= 100
+        && data.createdAt == request.time;
+    }
+
+    function isValidGoal(data) {
+      return data.keys().hasAll(['userId', 'title', 'targetDate', 'isCompleted'])
+        && data.userId == request.auth.uid
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.isCompleted is bool;
+    }
+
+    function isValidSubGoal(data) {
+      return data.keys().hasAll(['userId', 'goalId', 'title', 'targetDate', 'isCompleted'])
+        && data.userId == request.auth.uid
+        && isValidId(data.goalId)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.isCompleted is bool;
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['userId', 'subGoalId', 'title', 'isCompleted'])
+        && data.userId == request.auth.uid
+        && isValidId(data.subGoalId)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.isCompleted is bool;
+    }
+
+    function isValidHealthDaily(data) {
+      return data.keys().hasAll(['userId', 'date', 'points_today'])
+        && data.userId == request.auth.uid
+        && data.date is string
+        && data.points_today is number;
+    }
+
+    // --- Rules for Collections ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Users cannot be listed
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['points', 'lastActive', 'country', 'calculationMethod', 'fitnessLevel', 'careerGoal', 'onboardingComplete', 'age', 'name', 'level', 'streak', 'currentWeight'])
+      );
+    }
+
+    match /salat_logs/{logId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        existing().userId == request.auth.uid && 
+        incoming().userId == existing().userId &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'timestamp', 'points'])
+      );
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /goals/{goalId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidGoal(incoming());
+      allow update: if isSignedIn() && (
+        existing().userId == request.auth.uid &&
+        isValidGoal(incoming()) && (
+          // Action: Toggle completion
+          (incoming().diff(existing()).affectedKeys().hasOnly(['isCompleted'])) ||
+          // Action: Generic Edit
+          (incoming().diff(existing()).affectedKeys().hasOnly(['title', 'targetDate']))
+        )
+      );
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /subgoals/{subGoalId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidSubGoal(incoming());
+      allow update: if isSignedIn() && (
+        existing().userId == request.auth.uid &&
+        isValidSubGoal(incoming()) && (
+          (incoming().diff(existing()).affectedKeys().hasOnly(['isCompleted'])) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['title', 'targetDate']))
+        )
+      );
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /tasks/{taskId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidTask(incoming());
+      allow update: if isSignedIn() && (
+        existing().userId == request.auth.uid &&
+        isValidTask(incoming()) && (
+          (incoming().diff(existing()).affectedKeys().hasOnly(['isCompleted'])) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['title']))
+        )
+      );
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /health_daily/{docId} {
+      allow get: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && resource.data.userId == request.auth.uid));
+      allow list: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || incoming().userId == request.auth.uid) && isValidHealthDaily(incoming());
+      allow update: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid)) && (
+        incoming().diff(existing()).affectedKeys().hasAny(['workout_done', 'exercises_completed', 'workout_duration_minutes', 'glasses_water', 'breakfast', 'lunch', 'dinner', 'snack', 'sleep_hours', 'energy_level', 'points_today', 'perfect_day_bonus_awarded', 'weight'])
+      );
+      allow delete: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
+    }
+
+    match /daily_logs/{docId} {
+      allow get: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
+      allow list: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || incoming().userId == request.auth.uid);
+      allow update: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
+      allow delete: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
+    }
+
+    match /adhkar_logs/{logId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /badges/{badgeId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+    }
+  }
+}
