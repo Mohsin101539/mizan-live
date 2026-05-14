@@ -1,0 +1,8 @@
+{
+  "name": "MIZAN",
+  "description": "A holistic life balance app for Muslims focusing on three core pillars: Deen, Career, and Health.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}
