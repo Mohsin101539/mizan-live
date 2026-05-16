@@ -8,6 +8,14 @@
         "name": { "type": "string" },
         "email": { "type": "string" },
         "country": { "type": "string" },
+        "city": { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" }
+          }
+        },
         "calculationMethod": { "type": "string" },
         "fitnessLevel": { "type": "string" },
         "careerGoal": { "type": "string" },
@@ -85,6 +93,7 @@
         "sleep_hours": { "type": "number" },
         "energy_level": { "type": "number" },
         "weight": { "type": "number" },
+        "height": { "type": "number" },
         "points_today": { "type": "number" }
       }
     }

@@ -5,9 +5,11 @@ import { db, handleFirestoreError, OperationType } from '../../services/firebase
 import { doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { useFirebase } from '../../FirebaseContext';
 import confetti from 'canvas-confetti';
+import { useTranslation } from 'react-i18next';
 
 export const FocusTimer: React.FC = () => {
   const { user } = useFirebase();
+  const { t } = useTranslation();
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [timeLeft, setTimeLeft] = useState(25 * 60);
@@ -107,7 +109,7 @@ export const FocusTimer: React.FC = () => {
                   <Target size={16} className="text-[#D4A853]" />
                 )}
                 <p className="text-[10px] uppercase tracking-[0.2em] font-black text-white/80">
-                  {isBreak ? 'Short Break' : 'Focus Session'}
+                  {isBreak ? t('career.focusTimer.breakTime', 'Short Break') : t('career.focusTimer.focusing', 'Focus Session')}
                 </p>
               </div>
 
@@ -145,11 +147,11 @@ export const FocusTimer: React.FC = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="pt-4 space-y-8"
             >
-              <h3 className="text-sm font-black uppercase tracking-widest text-[#D4A853]">Timer Settings</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-[#D4A853]">{t('career.focusTimer.settings', 'Timer Settings')}</h3>
               
               <div className="grid grid-cols-1 gap-6 max-w-[240px] mx-auto">
                 <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Focus Minutes</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">{t('career.focusTimer.focusMinutes', 'Focus Minutes')}</p>
                   <div className="flex items-center justify-between bg-white/5 rounded-2xl p-2 px-4 border border-white/10">
                     <button onClick={() => setFocusMinutes(m => Math.max(1, m - 5))} className="p-2 text-[#D4A853]"><Minus size={16} /></button>
                     <span className="text-2xl font-black">{focusMinutes}</span>
@@ -158,7 +160,7 @@ export const FocusTimer: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Break Minutes</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">{t('career.focusTimer.breakMinutes', 'Break Minutes')}</p>
                   <div className="flex items-center justify-between bg-white/5 rounded-2xl p-2 px-4 border border-white/10">
                     <button onClick={() => setBreakMinutes(m => Math.max(1, m - 1))} className="p-2 text-[#D4A853]"><Minus size={16} /></button>
                     <span className="text-2xl font-black">{breakMinutes}</span>
@@ -171,7 +173,7 @@ export const FocusTimer: React.FC = () => {
                 onClick={() => setShowSettings(false)}
                 className="bg-[#D4A853] text-[#1B4332] w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#D4A853]/20 transition-all hover:scale-[1.02] active:scale-95"
               >
-                Save & Close
+                {t('career.goalTree.save', 'Save & Close')}
               </button>
             </motion.div>
           )}

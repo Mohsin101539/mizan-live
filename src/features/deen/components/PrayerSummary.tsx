@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { db, handleFirestoreError, OperationType } from '../../services/firebase';
+import { db, handleFirestoreError, OperationType } from '../../../services/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useFirebase } from '../../FirebaseContext';
-import { getPrayerTimes, formatPrayerTime } from '../../services/prayerService';
+import { useFirebase } from '../../../FirebaseContext';
+import { getPrayerTimes, formatPrayerTime } from '../../../services/prayerService';
 import confetti from 'canvas-confetti';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const PrayerSummary: React.FC = () => {
-  const { user } = useFirebase();
+  const { user, profile } = useFirebase();
+  const { t } = useTranslation();
   const [prayers, setPrayers] = useState<any[]>([]);
   const [donePrayers, setDonePrayers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,10 +31,17 @@ export const PrayerSummary: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
+    if (profile?.location?.latitude && profile?.location?.longitude) {
+      setPrayers(getPrayerTimes(profile.location.latitude, profile.location.longitude));
+      setLoading(false);
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setPrayers(getPrayerTimes(latitude, longitude));
+        setLoading(true); // Wait for logs? No, loading is for prayer times
         setLoading(false);
       },
       () => {
@@ -41,7 +50,7 @@ export const PrayerSummary: React.FC = () => {
       },
       { timeout: 10000 }
     );
-  }, []);
+  }, [profile?.location]);
 
   const celebrate = async (prayerName: string) => {
     if (!user || donePrayers.includes(prayerName)) return;
@@ -83,25 +92,25 @@ export const PrayerSummary: React.FC = () => {
           >
             <div className="flex items-center gap-4 w-full sm:w-1/3">
               <div className={`w-3 h-3 rounded-full ${isDone ? 'bg-green-500' : isCurrent ? 'bg-brand-gold animate-pulse' : 'bg-gray-300'}`}></div>
-              <span className="font-black text-brand-forest">{prayer.name}</span>
+              <span className="font-black text-brand-forest">{t(`salat.${prayer.name}`, prayer.name)}</span>
             </div>
             
             <div className="flex items-center justify-between w-full sm:w-auto gap-4">
               <span className="text-sm font-mono font-black text-brand-forest">{formatPrayerTime(prayer.time)}</span>
               {isDone ? (
-                <span className="text-[10px] font-black text-green-700 uppercase tracking-widest bg-green-500/10 px-3 py-1 rounded-lg">Done ✓</span>
+                <span className="text-[10px] font-black text-green-700 uppercase tracking-widest bg-green-500/10 px-3 py-1 rounded-lg">{t('salat.status.done', 'Done ✓')}</span>
               ) : isCurrent ? (
                 <button 
                   onClick={() => celebrate(prayer.name)}
                   className="bg-brand-forest text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest"
                 >
-                  I Prayed ✓
+                  {t('salat.status.iPrayed', 'I Prayed ✓')}
                 </button>
               ) : (
-                <span className="text-[10px] font-black opacity-30 uppercase tracking-widest">Upcoming</span>
+                <span className="text-[10px] font-black opacity-30 uppercase tracking-widest">{t('salat.status.upcoming', 'Upcoming')}</span>
               )}
             </div>
-            {isCurrent && !isDone && <div className="hidden sm:block text-[10px] font-black text-brand-gold uppercase tracking-widest underline decoration-2">Current</div>}
+            {isCurrent && !isDone && <div className="hidden sm:block text-[10px] font-black text-brand-gold uppercase tracking-widest underline decoration-2">{t('salat.status.current', 'Current')}</div>}
           </div>
         );
       })}

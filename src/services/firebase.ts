@@ -1,7 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, User as FirebaseUser } from 'firebase/auth';
 import { 
-  getFirestore, 
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   doc, 
   getDoc, 
   setDoc, 
@@ -16,7 +18,19 @@ import {
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+let dbInstance;
+
+try {
+  dbInstance = initializeFirestore(app, {
+    localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+  }, firebaseConfig.firestoreDatabaseId);
+} catch (error) {
+  console.warn("Could not enable persistence, falling back to default.", error);
+  dbInstance = initializeFirestore(app, {}, firebaseConfig.firestoreDatabaseId);
+}
+
+export const db = dbInstance;
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 

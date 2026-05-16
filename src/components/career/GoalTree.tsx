@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { db, handleFirestoreError, OperationType } from '../../services/firebase';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, deleteDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirebase } from '../../FirebaseContext';
 import { Plus, CheckSquare, Square, ChevronRight, ChevronDown, Trophy, Trash2, Loader2, Target, ListTodo, PlusCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import confetti from 'canvas-confetti';
-import { MIZAN_POINTS } from '../../constants/points';
-
-interface Goal { id: string; title: string; isCompleted: boolean; }
-interface SubGoal { id: string; goalId: string; title: string; isCompleted: boolean; }
-interface Task { id: string; subGoalId: string; title: string; isCompleted: boolean; }
+import { useTranslation } from 'react-i18next';
+import { useCareerData } from '../../features/career/hooks/useCareerData';
+import { useUpdateCareerTask } from '../../features/career/hooks/useUpdateCareerTask';
 
 export const GoalTree: React.FC = () => {
   const { user } = useFirebase();
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [subGoals, setSubGoals] = useState<SubGoal[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { t } = useTranslation();
+  
+  const { goals, subGoals, tasks, loading: loadingData, refetchGoals, refetchSubGoals, refetchTasks } = useCareerData();
+  const { mutate: updateItem } = useUpdateCareerTask();
+
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [expandedSubGoal, setExpandedSubGoal] = useState<string | null>(null);
   
@@ -25,47 +24,6 @@ export const GoalTree: React.FC = () => {
   
   const [newTitle, setNewTitle] = useState('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      fetchGoals();
-      fetchSubGoals();
-      fetchTasks();
-    }
-  }, [user]);
-
-  const fetchGoals = async () => {
-    if (!user) return;
-    try {
-      const q = query(collection(db, 'goals'), where('userId', '==', user.uid));
-      const snap = await getDocs(q);
-      setGoals(snap.docs.map(d => ({ id: d.id, ...d.data() } as Goal)));
-    } catch (e) {
-      handleFirestoreError(e, OperationType.GET, 'goals');
-    }
-  };
-
-  const fetchSubGoals = async () => {
-    if (!user) return;
-    try {
-      const q = query(collection(db, 'subgoals'), where('userId', '==', user.uid));
-      const snap = await getDocs(q);
-      setSubGoals(snap.docs.map(d => ({ id: d.id, ...d.data() } as SubGoal)));
-    } catch (e) {
-      handleFirestoreError(e, OperationType.GET, 'subgoals');
-    }
-  };
-
-  const fetchTasks = async () => {
-    if (!user) return;
-    try {
-      const q = query(collection(db, 'tasks'), where('userId', '==', user.uid));
-      const snap = await getDocs(q);
-      setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() } as Task)));
-    } catch (e) {
-      handleFirestoreError(e, OperationType.GET, 'tasks');
-    }
-  };
 
   const addItem = async (type: 'goal' | 'subgoal' | 'task', parentId?: string) => {
     if (!newTitle || !user) return;
@@ -79,7 +37,7 @@ export const GoalTree: React.FC = () => {
           targetDate: new Date().toISOString(),
           createdAt: serverTimestamp()
         });
-        fetchGoals();
+        refetchGoals();
         setIsAddingGoal(false);
       } else if (type === 'subgoal' && parentId) {
         await addDoc(collection(db, 'subgoals'), {
@@ -89,7 +47,7 @@ export const GoalTree: React.FC = () => {
           isCompleted: false,
           targetDate: new Date().toISOString()
         });
-        fetchSubGoals();
+        refetchSubGoals();
         setAddingSubGoalFor(null);
       } else if (type === 'task' && parentId) {
         await addDoc(collection(db, 'tasks'), {
@@ -98,7 +56,7 @@ export const GoalTree: React.FC = () => {
           title: newTitle,
           isCompleted: false
         });
-        fetchTasks();
+        refetchTasks();
         setAddingTaskFor(null);
       }
       setNewTitle('');
@@ -109,46 +67,31 @@ export const GoalTree: React.FC = () => {
     }
   };
 
-  const toggleItem = async (type: 'goals' | 'subgoals' | 'tasks', id: string, current: boolean) => {
-    if (!user) return;
-    try {
-      const pointsMap = {
-        goals: 500,
-        subgoals: 100,
-        tasks: MIZAN_POINTS.CAREER_TASK
-      };
-      
-      const points = pointsMap[type];
-      
-      await updateDoc(doc(db, type, id), { isCompleted: !current });
-      if (!current) {
-         await updateDoc(doc(db, 'users', user.uid), { 
-           points: increment(points),
-           lastActive: serverTimestamp() 
-         });
-         confetti({ particleCount: Math.min(100, points / 5), spread: 70 });
-      }
-      if (type === 'goals') fetchGoals();
-      if (type === 'subgoals') fetchSubGoals();
-      if (type === 'tasks') fetchTasks();
-    } catch (e) {
-      handleFirestoreError(e, OperationType.UPDATE, `${type}/${id}`);
-    }
+  const toggleItem = (type: 'goals' | 'subgoals' | 'tasks', id: string, current: boolean) => {
+    updateItem({ type, id, current });
   };
 
   const deleteItem = async (type: 'goals' | 'subgoals' | 'tasks', id: string) => {
     setLoading(true);
     try {
       await deleteDoc(doc(db, type, id));
-      if (type === 'goals') fetchGoals();
-      if (type === 'subgoals') fetchSubGoals();
-      if (type === 'tasks') fetchTasks();
+      if (type === 'goals') refetchGoals();
+      if (type === 'subgoals') refetchSubGoals();
+      if (type === 'tasks') refetchTasks();
     } catch (e) {
       handleFirestoreError(e, OperationType.DELETE, `${type}/${id}`);
     } finally {
       setLoading(false);
     }
   };
+
+  if (loadingData) {
+    return (
+      <div className="flex justify-center p-12">
+        <Loader2 className="animate-spin text-brand-gold" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -158,8 +101,8 @@ export const GoalTree: React.FC = () => {
             <Target size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-black text-brand-forest italic">Your Ambitions</h2>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-brand-forest/30">Build your legacy</p>
+            <h2 className="text-lg font-black text-brand-forest italic">{t('career.goalTree.yourAmbitions', 'Your Ambitions')}</h2>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-brand-forest/30">{t('career.goalTree.buildLegacy', 'Build your legacy')}</p>
           </div>
         </div>
         <button 
@@ -171,7 +114,7 @@ export const GoalTree: React.FC = () => {
             isAddingGoal ? 'bg-brand-gold text-brand-forest' : 'bg-brand-forest text-white shadow-xl shadow-brand-forest/20'
           }`}
         >
-          {isAddingGoal ? <><X size={14} /> Cancel</> : <><Plus size={14} /> New Goal</>}
+          {isAddingGoal ? <><X size={14} /> {t('profile.cancel', 'Cancel')}</> : <><Plus size={14} /> {t('career.goalTree.addGoal', 'New Goal')}</>}
         </button>
       </div>
 
@@ -187,7 +130,7 @@ export const GoalTree: React.FC = () => {
               <input 
                 autoFocus
                 className="w-full bg-white/10 border-2 border-white/10 p-5 rounded-2xl font-bold text-white outline-none focus:border-brand-gold placeholder:text-white/30 text-lg mb-4"
-                placeholder="What is your big goal?"
+                placeholder={t('career.goalTree.goalPlaceholder', 'What is your big goal?')}
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addItem('goal')}
@@ -198,7 +141,7 @@ export const GoalTree: React.FC = () => {
                 className="w-full bg-brand-gold text-brand-forest py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-brand-gold/20 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading && <Loader2 className="animate-spin" size={16} />}
-                Establish Milestone
+                {t('career.goalTree.save', 'Establish Milestone')}
               </button>
             </div>
           </motion.div>
@@ -270,7 +213,7 @@ export const GoalTree: React.FC = () => {
                       }}
                       className="text-[10px] font-black uppercase tracking-widest text-brand-gold flex items-center gap-2 hover:underline"
                     >
-                      {addingSubGoalFor === goal.id ? 'Cancel' : <><Plus size={14} /> Add Subgoal</>}
+                      {addingSubGoalFor === goal.id ? t('profile.cancel', 'Cancel') : <><Plus size={14} /> {t('career.goalTree.addStep', 'Add Subgoal')}</>}
                     </button>
                   </div>
 
@@ -279,7 +222,7 @@ export const GoalTree: React.FC = () => {
                        <input 
                          autoFocus
                          className="flex-1 bg-white border border-brand-forest/10 p-3 rounded-xl font-bold text-brand-forest text-sm outline-none"
-                         placeholder="Break it down into subgoals..."
+                         placeholder={t('career.goalTree.subGoalPlaceholder', 'Break it down into subgoals...')}
                          value={newTitle}
                          onChange={e => setNewTitle(e.target.value)}
                          onKeyDown={e => e.key === 'Enter' && addItem('subgoal', goal.id)}
@@ -289,7 +232,7 @@ export const GoalTree: React.FC = () => {
                          disabled={!newTitle || loading}
                          className="bg-brand-forest text-white px-6 py-3 sm:py-0 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-brand-forest/20 whitespace-nowrap"
                        >
-                         {loading ? <Loader2 className="animate-spin" size={14} /> : 'Save Subgoal'}
+                         {loading ? <Loader2 className="animate-spin" size={14} /> : t('career.goalTree.save', 'Save Subgoal')}
                        </button>
                     </div>
                   )}
@@ -335,7 +278,7 @@ export const GoalTree: React.FC = () => {
                                 <input 
                                   autoFocus
                                   className="flex-1 bg-brand-forest/5 border border-brand-forest/5 p-3 rounded-xl text-xs font-bold outline-none focus:border-brand-gold"
-                                  placeholder="What needs to be done?"
+                                  placeholder={t('career.goalTree.taskPlaceholder', 'What needs to be done?')}
                                   value={newTitle}
                                   onChange={e => setNewTitle(e.target.value)}
                                   onKeyDown={e => e.key === 'Enter' && addItem('task', subGoal.id)}
@@ -345,7 +288,7 @@ export const GoalTree: React.FC = () => {
                                   disabled={!newTitle || loading}
                                   className="bg-brand-gold text-brand-forest px-4 py-3 sm:py-0 rounded-xl text-[10px] font-black uppercase whitespace-nowrap shadow-lg shadow-brand-gold/10"
                                 >
-                                  {loading ? <Loader2 className="animate-spin" size={12} /> : 'Add Task'}
+                                  {loading ? <Loader2 className="animate-spin" size={12} /> : t('career.goalTree.addTask', 'Add Task')}
                                 </button>
                               </div>
                            )}
@@ -376,7 +319,7 @@ export const GoalTree: React.FC = () => {
                     ))}
                     {subGoals.filter(sg => sg.goalId === goal.id).length === 0 && !addingSubGoalFor && (
                       <div className="text-center py-8 rounded-3xl border-2 border-dashed border-brand-forest/5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-brand-forest/10">No steps defined for this goal</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-brand-forest/10">{t('career.goalTree.noSteps', 'No steps defined for this goal')}</p>
                       </div>
                     )}
                   </div>
@@ -390,7 +333,7 @@ export const GoalTree: React.FC = () => {
             <div className="w-16 h-16 bg-brand-forest/5 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-forest/10">
               <Trophy size={32} />
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-forest/20">Plant your first seed of success</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-forest/20">{t('career.goalTree.plantSeed', 'Plant your first seed of success')}</p>
           </div>
         )}
       </div>

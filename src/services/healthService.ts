@@ -15,9 +15,12 @@ export interface HealthDaily {
   snack: boolean;
   sleep_hours: number;
   energy_level: number;
+  steps?: number;
   weight?: number;
+  height?: number;
   points_today: number;
   perfect_day_bonus_awarded?: boolean;
+  meals_logged?: string[];
 }
 
 const handleFirestoreError = (error: any, type: OperationType, path: string) => {
@@ -55,7 +58,8 @@ export const createHealthDaily = async (userId: string, date: string): Promise<H
     sleep_hours: 7,
     energy_level: 3,
     points_today: 0,
-    perfect_day_bonus_awarded: false
+    perfect_day_bonus_awarded: false,
+    meals_logged: []
   };
   try {
     await setDoc(doc(db, 'health_daily', docId), newData);

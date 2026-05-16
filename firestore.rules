@@ -34,7 +34,7 @@ service cloud.firestore {
 
     function isValidUser(data) {
       return data.keys().hasAll(['name', 'email', 'createdAt']) 
-        && data.keys().size() <= 15
+        && data.keys().size() <= 20
         && data.name is string && data.name.size() <= 100
         && data.email is string && data.email.size() <= 100
         && data.createdAt == request.time;
@@ -64,10 +64,9 @@ service cloud.firestore {
     }
 
     function isValidHealthDaily(data) {
-      return data.keys().hasAll(['userId', 'date', 'points_today'])
+      return data.keys().hasAll(['userId', 'date'])
         && data.userId == request.auth.uid
-        && data.date is string
-        && data.points_today is number;
+        && data.date is string;
     }
 
     // --- Rules for Collections ---
@@ -77,8 +76,17 @@ service cloud.firestore {
       allow list: if false; // Users cannot be listed
       allow create: if isOwner(userId) && isValidUser(incoming());
       allow update: if isOwner(userId) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['points', 'lastActive', 'country', 'calculationMethod', 'fitnessLevel', 'careerGoal', 'onboardingComplete', 'age'])
+        incoming().diff(existing()).affectedKeys().hasOnly(['points', 'lastActive', 'country', 'city', 'location', 'calculationMethod', 'fitnessLevel', 'careerGoal', 'onboardingComplete', 'age', 'name', 'level', 'streak', 'currentWeight', 'height', 'language', 'streakFreezes', 'lastLoginDate', 'wearableConnected', 'wearableProvider', 'groups', 'customRoutines', 'pinnedFoods', 'selectedPlanId'])
       );
+      allow delete: if isOwner(userId);
+
+      match /vault/{hadithId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && incoming().id == hadithId && incoming().keys().hasAll(['id', 'arabic', 'timestamp']);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
     }
 
     match /salat_logs/{logId} {
@@ -142,12 +150,20 @@ service cloud.firestore {
       allow list: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || incoming().userId == request.auth.uid) && isValidHealthDaily(incoming());
       allow update: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid)) && (
-        incoming().diff(existing()).affectedKeys().hasAny(['workout_done', 'exercises_completed', 'workout_duration_minutes', 'glasses_water', 'breakfast', 'lunch', 'dinner', 'snack', 'sleep_hours', 'energy_level', 'points_today', 'perfect_day_bonus_awarded', 'weight'])
+        incoming().diff(existing()).affectedKeys().hasAny(['workout_done', 'exercises_completed', 'workout_duration_minutes', 'glasses_water', 'breakfast', 'lunch', 'dinner', 'snack', 'sleep_hours', 'energy_level', 'points_today', 'perfect_day_bonus_awarded', 'weight', 'height', 'steps', 'workoutDone', 'workoutSession', 'walkLogged', 'pointsFromHealth'])
       );
       allow delete: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
     }
 
     match /daily_logs/{docId} {
+      allow get: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
+      allow list: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || incoming().userId == request.auth.uid);
+      allow update: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
+      allow delete: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
+    }
+
+    match /streak_logs/{docId} {
       allow get: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || (resource != null && existing().userId == request.auth.uid));
       allow list: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() && (docId.split('_')[0] == request.auth.uid || incoming().userId == request.auth.uid);
@@ -166,6 +182,22 @@ service cloud.firestore {
       allow get: if isSignedIn() && existing().userId == request.auth.uid;
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /groups/{groupId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && incoming().adminUid == request.auth.uid;
+      allow update: if isSignedIn() && existing().adminUid == request.auth.uid;
+      allow delete: if isSignedIn() && existing().adminUid == request.auth.uid;
+
+      match /members/{uid} {
+        allow get: if isSignedIn() && (uid == request.auth.uid || exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)));
+        allow list: if isSignedIn() && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid));
+        allow create: if isSignedIn() && uid == request.auth.uid;
+        allow update: if isSignedIn() && uid == request.auth.uid;
+        allow delete: if isSignedIn() && uid == request.auth.uid;
+      }
     }
   }
 }

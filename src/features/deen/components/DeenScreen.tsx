@@ -3,17 +3,21 @@ import { SalatTracker } from './SalatTracker';
 import { AdhkarSection } from './AdhkarSection';
 import { SunnahTracker } from './SunnahTracker';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
+import { useDeenStats } from '../hooks/useDeenStats';
 
 type DeenTab = 'salat' | 'adhkar' | 'sunnah';
 
 export const DeenScreen: React.FC = () => {
+  const { t } = useTranslation();
   const [activeSubTab, setActiveSubTab] = useState<DeenTab>('salat');
+  const { donePrayers, loading, error } = useDeenStats();
 
   return (
     <div className="pt-4 space-y-8">
-      <header>
-        <h1 className="text-4xl font-display font-black text-brand-forest italic">Deen Pillar</h1>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-forest/30 mt-1">Spiritual Excellence & Prophetic Sunnah</p>
+      <header className="pr-14 lg:pr-0">
+        <h1 className="text-4xl font-display font-black text-brand-forest italic">{t('deen.pillarTitle', 'Deen Pillar')}</h1>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-forest/30 mt-1">{t('deen.pillarSubtitle', 'Spiritual Excellence & Prophetic Sunnah')}</p>
       </header>
 
       <div>
@@ -28,17 +32,25 @@ export const DeenScreen: React.FC = () => {
                   : 'text-brand-forest/40 hover:text-brand-forest/60'
               }`}
             >
-              {tab}
+              {t(`deen.tabs.${tab}`, tab)}
             </button>
           ))}
         </div>
       </div>
 
+      {error && <div className="text-red-500 font-bold p-4 bg-red-50 rounded-xl">{error}</div>}
+
       <div className="pb-12">
-        {activeSubTab === 'salat' && <SalatTracker />}
+        {activeSubTab === 'salat' && (
+          <SalatTracker 
+            donePrayers={donePrayers} 
+            loadingStats={loading} 
+          />
+        )}
         {activeSubTab === 'adhkar' && <AdhkarSection />}
         {activeSubTab === 'sunnah' && <SunnahTracker />}
       </div>
     </div>
   );
 };
+

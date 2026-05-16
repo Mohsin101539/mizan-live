@@ -1,86 +1,128 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Heart,
-  Droplets,
-  Utensils,
-  Dumbbell,
-  Zap,
-  CheckCircle2,
-  Loader2
-} from 'lucide-react';
+import { Heart, Droplets, Dumbbell, Loader2 } from 'lucide-react';
 import { useFirebase } from '../../FirebaseContext';
-import { getHealthDaily, createHealthDaily, updateHealthDaily, HealthDaily } from '../../services/healthService';
-import { WORKOUT_PLANS, EXERCISES } from '../../constants/health';
-import { format } from 'date-fns';
+import { WORKOUT_PLANS } from '../../constants/health';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../../services/firebase';
 import { WaterTracker } from './WaterTracker';
-import { HealthPlan } from './HealthPlan';
+import { ExercisePlanCard } from './ExercisePlanCard';
 import { BodyLog } from './BodyLog';
+import { BodyProgress } from './BodyProgress';
 import { WorkoutSession } from './WorkoutSession';
+import { NutritionVault } from './NutritionVault';
+import { useTranslation } from 'react-i18next';
+import { useHealthDaily } from '../../features/health/hooks/useHealthDaily';
+import { useUpdateHealthStat } from '../../features/health/hooks/useUpdateHealthStat';
+import { authorizeWearable, syncDailyHealthData } from '../../services/wearableService';
 
 export const HealthScreen: React.FC = () => {
   const { user, profile } = useFirebase();
-  const [data, setData] = useState<HealthDaily | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
+  
+  const { data, isLoading: loading } = useHealthDaily();
+  const { mutate: updateHealth } = useUpdateHealthStat();
+
   const [showWorkout, setShowWorkout] = useState(false);
   const [pointsToast, setPointsToast] = useState<{ show: boolean, text: string }>({ show: false, text: '' });
+  const [connectingWearable, setConnectingWearable] = useState(false);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
   const dayOfWeek = new Date().getDay();
   const planId = profile?.fitnessLevel?.toLowerCase() || 'beginner';
+
+  const handleConnectWearable = async (provider: 'apple_health' | 'google_fit') => {
+    if (!user) return;
+    setConnectingWearable(true);
+    try {
+      const { token } = await authorizeWearable(provider);
+      const syncedData = await syncDailyHealthData();
+      
+      // Update profile
+      await updateDoc(doc(db, 'users', user.uid), {
+        wearableConnected: true,
+        wearableProvider: provider
+      });
+      
+      // Update today's data
+      handleUpdate({
+        steps: syncedData.steps,
+        sleep_hours: syncedData.sleep_hours
+      });
+      
+      showToast(`Connected to ${provider === 'apple_health' ? 'Apple Health' : 'Google Fit'}!`);
+    } catch (e) {
+      console.error(e);
+      showToast('Connection failed');
+    } finally {
+      setConnectingWearable(false);
+    }
+  };
   const plan = WORKOUT_PLANS[planId] || WORKOUT_PLANS.beginner;
-  const todaysExercises = plan.schedule[dayOfWeek] || [];
+  const todaysExercises = profile?.customRoutines?.[dayOfWeek] || plan.schedule[dayOfWeek] || [];
   const isRestDay = todaysExercises.length === 0;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return;
-      setLoading(true);
-      try {
-        let dailyData = await getHealthDaily(user.uid, today);
-        if (!dailyData) {
-          dailyData = await createHealthDaily(user.uid, today);
+  const handleUpdateRoutine = async (exercises: string[]) => {
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        customRoutines: {
+          [dayOfWeek]: exercises
         }
-        setData(dailyData);
-      } catch (e) {
-        console.error("Health fetch error:", e);
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, [user, today]);
+      }, { merge: true });
+    } catch (e) {
+      console.error("Failed to update routine", e);
+    }
+  };
 
   const showToast = useCallback((text: string) => {
     setPointsToast({ show: true, text });
     setTimeout(() => setPointsToast({ show: false, text: '' }), 2000);
   }, []);
 
-  const handleUpdate = useCallback(async (updates: Partial<HealthDaily>, points: number = 0) => {
-    if (!user || !data) return;
-    const newData = { ...data, ...updates };
-    if (points > 0) newData.points_today += points;
-    setData(newData);
-    await updateHealthDaily(user.uid, today, updates, points);
-    if (points > 0) showToast(`+${points} pts · Mizan Balanced`);
-  }, [user, data, today, showToast]);
+  const handleUpdate = useCallback((updates: any, points: number = 0) => {
+    updateHealth({ updates, points }, {
+      onSuccess: () => {
+        if (points > 0) showToast(`+${points} pts · Mizan Balanced`);
+      }
+    });
+  }, [updateHealth, showToast]);
 
   const addWater = useCallback(() => {
     if (!data) return;
     const newCount = Math.min(8, data.glasses_water + 1);
     if (newCount === data.glasses_water) return;
-    const points = newCount === 8 ? 25 : 5; // 20 bonus + 5 standard
+    const points = newCount === 8 ? 25 : 5;
     handleUpdate({ glasses_water: newCount }, points);
   }, [data, handleUpdate]);
 
-  const toggleMeal = useCallback((mealKey: 'breakfast' | 'lunch' | 'dinner' | 'snack') => {
+  const updatePinnedFoods = useCallback(async (newPinned: string[]) => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { pinnedFoods: newPinned });
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
+    }
+  }, [user]);
+
+  const onLogFood = useCallback((food: string) => {
     if (!data) return;
-    const isNowDone = !data[mealKey];
-    handleUpdate({ [mealKey]: isNowDone }, isNowDone ? 15 : -15);
+    const currentMeals = data.meals_logged || [];
+    handleUpdate({ meals_logged: [...currentMeals, food] }, 10);
   }, [data, handleUpdate]);
 
   const updateWeight = useCallback((val: number) => {
     handleUpdate({ weight: val });
   }, [handleUpdate]);
+
+  const updateHeight = useCallback(async (val: number) => {
+    if (!user) return;
+    handleUpdate({ height: val });
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { height: val });
+    } catch (e) {
+      console.error("Profile height update error:", e);
+    }
+  }, [user, handleUpdate]);
 
   const updateSleep = useCallback((delta: number) => {
     if (!data) return;
@@ -92,14 +134,32 @@ export const HealthScreen: React.FC = () => {
     handleUpdate({ energy_level: val });
   }, [handleUpdate]);
 
-  const onWorkoutComplete = useCallback(async (exercisesCount: number, duration: number) => {
-    setShowWorkout(false);
-    await handleUpdate({
-      workout_done: true,
-      exercises_completed: exercisesCount,
-      workout_duration_minutes: duration
-    }, 50);
+  const updateSteps = useCallback((val: number) => {
+    handleUpdate({ steps: val });
   }, [handleUpdate]);
+
+  const handlePlanChange = useCallback(async (newPlanId: string) => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { selectedPlanId: newPlanId });
+    } catch (e) {
+      console.error(e);
+    }
+  }, [user]);
+
+  const onWorkoutSessionComplete = useCallback((session: any) => {
+    setShowWorkout(false);
+    // State is expected to be updated by the component itself ideally or we refresh.
+  }, []);
+
+  const onWorkoutComplete = useCallback((duration: number, name: string) => {
+    setShowWorkout(false);
+    handleUpdate({
+      workout_done: true,
+      exercises_completed: todaysExercises.length || 1,
+      workout_duration_minutes: duration
+    }, duration); // 1 point per 1 min
+  }, [handleUpdate, todaysExercises.length]);
 
   const onLogWalk = useCallback(() => {
     handleUpdate({ workout_done: true }, 20);
@@ -115,8 +175,8 @@ export const HealthScreen: React.FC = () => {
 
   const workoutProgress = isRestDay ? 1 : (data?.workout_done ? 1 : (data?.exercises_completed || 0) / (todaysExercises.length || 1));
   const waterProgress = (data?.glasses_water || 0) / 8;
-  const mealsCount = [data?.breakfast, data?.lunch, data?.dinner, data?.snack].filter(Boolean).length;
-  const mealsProgress = mealsCount / 4;
+  const mealsCount = data?.meals_logged?.length || 0;
+  const mealsProgress = Math.min(mealsCount / 3, 1);
   const overallPercent = Math.round(((workoutProgress + waterProgress + mealsProgress) / 3) * 100);
 
   return (
@@ -135,10 +195,10 @@ export const HealthScreen: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <header className="flex justify-between items-start px-2">
+      <header className="flex justify-between items-start px-2 pr-14 lg:pr-2">
         <div>
-          <h1 className="text-4xl font-display font-black text-brand-forest italic leading-none">Health Pillar</h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-forest/30 mt-2">Vitality & Prophetic Wellness</p>
+          <h1 className="text-4xl font-display font-black text-brand-forest italic leading-none">{t('health.pillarTitle', 'Health Pillar')}</h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-forest/30 mt-2">{t('health.pillarSubtitle', 'Vitality & Prophetic Wellness')}</p>
         </div>
         <div className="w-12 h-12 rounded-2xl bg-[#7C2D12]/10 flex items-center justify-center text-[#7C2D12]">
           <Heart size={24} />
@@ -149,13 +209,13 @@ export const HealthScreen: React.FC = () => {
       <section className="bg-[#7C2D12] text-white rounded-3xl p-6 shadow-xl shadow-[#7C2D12]/20 relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex justify-between items-center mb-6">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Daily Mizan Score</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">{t('health.dailyScore', 'Daily Mizan Score')}</span>
             <span className="text-3xl font-black">{overallPercent}%</span>
           </div>
           <div className="flex gap-4">
             <div className="flex-1 space-y-2">
               <div className="flex justify-between text-[10px] font-black opacity-40 uppercase tracking-widest">
-                <span>Hydration</span>
+                <span>{t('health.water', 'Hydration')}</span>
                 <span>{data?.glasses_water}/8</span>
               </div>
               <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
@@ -164,7 +224,7 @@ export const HealthScreen: React.FC = () => {
             </div>
             <div className="flex-1 space-y-2">
               <div className="flex justify-between text-[10px] font-black opacity-40 uppercase tracking-widest">
-                <span>Vitality</span>
+                <span>{t('health.workout', 'Vitality')}</span>
                 <span>{data?.workout_done ? '1/1' : '0/1'}</span>
               </div>
               <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
@@ -178,48 +238,47 @@ export const HealthScreen: React.FC = () => {
       </section>
 
       <section>
+        <BodyProgress weight={data?.weight || profile?.currentWeight} height={data?.height || profile?.height} />
+      </section>
+
+      <section>
         <WaterTracker glasses={data?.glasses_water || 0} onAdd={addWater} />
       </section>
 
       <section>
-        <HealthPlan 
-          plan={plan}
-          isRestDay={isRestDay}
-          todaysExercises={todaysExercises}
-          workoutDone={data?.workout_done || false}
-          exercisesCompleted={data?.exercises_completed || 0}
-          onStartWorkout={() => setShowWorkout(true)}
-          onLogWalk={onLogWalk}
+        <ExercisePlanCard 
+          userId={user?.uid || ''}
+          selectedPlanId={(profile?.selectedPlanId as any) || 'beginner'}
+          onPlanChange={handlePlanChange}
+          todayLog={data as any}
+          onWorkoutComplete={onWorkoutSessionComplete}
         />
       </section>
 
-      {/* Meals Checklist - Quick Access */}
-      <section className="bg-white rounded-2xl p-6 shadow-sm border border-brand-forest/5 font-health">
-         <h3 className="text-lg font-black flex items-center gap-2 mb-6">
-            <Utensils className="text-orange-500" size={20} /> Today's Meals
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-             {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map((meal) => (
-               <button 
-                key={meal}
-                onClick={() => toggleMeal(meal)}
-                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${data?.[meal] ? 'bg-green-50 border-green-200 text-green-700' : 'bg-brand-forest/5 border-transparent opacity-40'}`}
-               >
-                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${data?.[meal] ? 'bg-green-500 border-green-500 text-white' : 'border-current'}`}>
-                    {data?.[meal] && <CheckCircle2 size={12} />}
-                 </div>
-                 <span className="text-[10px] font-black uppercase tracking-widest">{meal}</span>
-               </button>
-             ))}
-          </div>
+      {/* Quick-Add Nutrition Vault */}
+      <section>
+        <NutritionVault 
+          pinnedFoods={profile?.pinnedFoods || ['Oatmeal', 'Dates', 'Protein Shake']}
+          mealsLogged={data?.meals_logged || []}
+          onLogFood={onLogFood}
+          onUpdatePinned={updatePinnedFoods}
+        />
       </section>
 
       <section className="pb-12">
         <BodyLog 
-          weight={data?.weight}
+          weight={data?.weight || profile?.currentWeight}
+          height={data?.height || profile?.height}
+          steps={data?.steps}
           sleep={data?.sleep_hours || 7}
           energy={data?.energy_level || 3}
+          wearableConnected={profile?.wearableConnected}
+          wearableProvider={profile?.wearableProvider}
+          connectingWearable={connectingWearable}
+          onConnectWearable={handleConnectWearable}
           onUpdateWeight={updateWeight}
+          onUpdateHeight={updateHeight}
+          onUpdateSteps={updateSteps}
           onUpdateSleep={updateSleep}
           onUpdateEnergy={updateEnergy}
           onSave={() => handleUpdate({}, 10)}
@@ -229,8 +288,7 @@ export const HealthScreen: React.FC = () => {
       {/* Workout Session Modal */}
       {showWorkout && (
         <WorkoutSession 
-          exerciseIds={todaysExercises}
-          workoutName={plan.name}
+          exercises={todaysExercises}
           onComplete={onWorkoutComplete}
           onClose={() => setShowWorkout(false)}
         />

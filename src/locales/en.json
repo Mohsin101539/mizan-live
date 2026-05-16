@@ -1,0 +1,297 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search language..."
+  },
+  "nav": {
+    "home": "Home",
+    "deen": "Deen",
+    "career": "Career",
+    "health": "Health",
+    "rewards": "Profile"
+  },
+  "auth": {
+    "signInWithGoogle": "Sign in with Google",
+    "tagline": "The scale of justice for the modern muslim life.",
+    "balance": "Balance Your Deen · Career · Health"
+  },
+  "onboarding": {
+    "language": {
+      "title": "Select Language",
+      "desc": "Choose your preferred language for the Mizan experience."
+    },
+    "identity": {
+      "title": "Welcome to Mizan",
+      "desc": "Let's personalize your balance journey. What should we call you?",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Your Full Name",
+      "age": "Age",
+      "agePlaceholder": "Age"
+    },
+    "health": {
+      "title": "Health Baseline",
+      "desc": "To track your physical pillar accurately. Height and weight are required for BMI.",
+      "height": "Height (cm)",
+      "heightPlaceholder": "Height (e.g. 175)",
+      "weight": "Current Weight (kg)",
+      "weightPlaceholder": "Weight (kg)",
+      "fitnessLevel": "Fitness Level"
+    },
+    "career": {
+      "title": "Career & Faith",
+      "desc": "Accurate location ensures perfect prayer timings.",
+      "careerGoal": "Main Career Goal",
+      "careerGoalPlaceholder": "e.g. Software Engineer",
+      "country": "Select Country",
+      "searchCountry": "Search Country",
+      "city": "Select City in {{country}}",
+      "searchCity": "Search City"
+    },
+    "next": "Next Step",
+    "start": "Begin Journey"
+  },
+  "loading": {
+     "sayingGoodbye": "Saying Goodbye",
+     "justAMoment": "Just a Moment",
+     "wipingRecords": "Securely wiping all your records and resetting your progress...",
+     "loadingBalance": "Loading your balance..."
+  },
+  "dashboard": {
+    "greeting": "Marhaba",
+    "traveler": "Traveler",
+    "mission": "Mission:",
+    "dailyBalance": "Your Daily Balance",
+    "streak": "DAY STREAK",
+    "syncing": "Syncing your progress...",
+    "logout": "Logout",
+    "pillars": {
+      "deen": "Deen Pillar",
+      "prayers": "Prayers Completed",
+      "career": "Career Pillar",
+      "tasks": "Tasks Progress",
+      "health": "Health Pillar",
+      "habits": "Habits Logged"
+    },
+    "salatTracker": "Salat Tracker",
+    "local": "Local",
+    "method": "Method",
+    "totalPoints": "Total Mizan Points",
+    "dailyReflection": "Daily Reflection"
+  },
+  "deen": {
+    "pillarTitle": "Deen Pillar",
+    "pillarSubtitle": "Spiritual Excellence & Prophetic Sunnah",
+    "tabs": {
+      "salat": "Salat",
+      "adhkar": "Adhkar",
+      "sunnah": "Sunnah"
+    },
+    "adhkar": {
+      "morning": "Morning",
+      "evening": "Evening",
+      "reset": "Reset dhikr",
+      "m1": {
+        "arabic": "اللّهُ لاَ إِلَـهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ",
+        "transliteration": "Allāhu lā ilāha illā huwal-ḥayyul-qayyūm",
+        "translation": "Allah! There is no god but He, the Living, the Self-subsisting"
+      },
+      "m2": {
+        "arabic": "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
+        "transliteration": "Subhan-Allahi wa bihamdihi",
+        "translation": "Glorified is Allah and praised is He."
+      },
+      "m3": {
+        "arabic": "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ",
+        "transliteration": "Asbahna wa asbahal-mulku lillah...",
+        "translation": "We have reached the morning and at this very time unto Allah belongs all sovereignty..."
+      },
+      "m4": {
+        "arabic": "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا",
+        "transliteration": "Allāhumma bika aṣbaḥnā, wa bika amsaynā",
+        "translation": "O Allah, by You we enter the morning and by You we enter the evening"
+      },
+      "m5": {
+        "arabic": "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ",
+        "transliteration": "Ya Hayyu Ya Qayyumu birahmatika astagheeth",
+        "translation": "O Ever Living One, O Eternal One, by Your mercy I call on You to set right all my affairs..."
+      }
+    },
+    "sunnah": {
+      "s1": {
+        "title": "Miswak / Brushing Teeth",
+        "description": "Sunnah of purification before prayer"
+      },
+      "s2": {
+        "title": "Daily Sadaqah",
+        "description": "Give even a small amount for the sake of Allah"
+      },
+      "s3": {
+        "title": "Reading 3 Quls",
+        "description": "Before sleeping for protection"
+      },
+      "s4": {
+        "title": "Using Right Hand",
+        "description": "For eating and drinking"
+      },
+      "s5": {
+        "title": "Wudu before Sleep",
+        "description": "Purify yourself before rest"
+      },
+      "s6": {
+        "title": "Salawat on Prophet (ﷺ)",
+        "description": "Send blessings upon the Messenger"
+      }
+    }
+  },
+  "salat": {
+    "Fajr": "Fajr",
+    "Dhuhr": "Dhuhr",
+    "Asr": "Asr",
+    "Maghrib": "Maghrib",
+    "Isha": "Isha",
+    "status": {
+      "done": "DONE ✓",
+      "iPrayed": "I PRAYED ✓",
+      "upcoming": "UPCOMING",
+      "missed": "MISSED",
+      "current": "Current",
+      "completed": "Completed"
+    }
+  },
+  "hadith": {
+    "hadith_1": "\"Actions are judged by intentions.\"\n— Prophet Muhammad (ﷺ)",
+    "hadith_2": "\"The best among you are those who have the best manners and character.\"\n— Prophet Muhammad (ﷺ)",
+    "hadith_3": "\"A good word is charity.\"\n— Prophet Muhammad (ﷺ)",
+    "hadith_4": "\"The best of you are those who learn the Quran and teach it.\"\n— Prophet Muhammad (ﷺ)",
+    "ayah_1": "\"Verily, with hardship comes ease.\"\n— Quran 94:6"
+  },
+  "career": {
+    "pillarTitle": "Career Pillar",
+    "pillarSubtitle": "Professional Growth & Master Skills",
+    "focusMode": "Focus Mode",
+    "focusTimer": {
+      "focusing": "Focusing",
+      "breakTime": "Break Time",
+      "settings": "Timer Settings",
+      "focusMinutes": "Focus Minutes",
+      "breakMinutes": "Break Minutes",
+      "start": "Start",
+      "pause": "Pause",
+      "reset": "Reset",
+      "done": "Done",
+      "greatSet": "Great set! Keep going.",
+      "skipRest": "Skip Rest",
+      "pointsEarned": "Points Earned"
+    },
+    "goalTree": {
+      "yourAmbitions": "Your Ambitions",
+      "buildLegacy": "Build your legacy",
+      "addGoal": "+ Add New Goal",
+      "plantSeed": "Plant your first seed of success",
+      "noSteps": "No steps defined for this goal",
+      "addStep": "Add Step",
+      "addTask": "Add Task",
+      "goalPlaceholder": "What is your main goal?",
+      "subGoalPlaceholder": "Enter a sub-goal...",
+      "taskPlaceholder": "Enter a small task...",
+      "save": "Save"
+    }
+  },
+  "health": {
+    "pillarTitle": "Health Pillar",
+    "pillarSubtitle": "Vitality & Prophetic Wellness",
+    "dailyScore": "Daily Mizan Score",
+    "workout": "Workout",
+    "water": "Water",
+    "meals": "Meals",
+    "todaysMeals": "Today's Meals",
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "snack": "Snack",
+    "waterIntake": "Water Intake",
+    "glasses": "Glasses",
+    "bodyProgress": "Body Progress",
+    "weight": "Weight",
+    "height": "Height",
+    "bmi": "BMI",
+    "bmiStatus": "BMI Status",
+    "sleep": "Sleep",
+    "energyLevel": "Energy Level",
+    "logBodyStats": "Log Body Stats",
+    "exercisePlan": "Exercise Plan",
+    "plan": "Plan",
+    "restDay": "Today is a Rest Day 😴",
+    "restTip": "Recovery is part of your growth. Perhaps a gentle walk?",
+    "startWorkout": "Start Workout",
+    "workoutComplete": "Workout Complete!",
+    "finishWorkout": "Finish Workout",
+    "sets": "sets",
+    "reps": "reps",
+    "set": "Set",
+    "of": "of",
+    "tip": "Tip",
+    "restTime": "Rest Time",
+    "completedText": "exercises completed",
+    "hrs": "hrs"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Achievements & Account Settings",
+    "authUser": "Authenticated User",
+    "currentTitle": "Your Current Title",
+    "level": "Level",
+    "badgeCollection": "Badge Collection",
+    "settings": "Settings",
+    "personalization": "Personalization",
+    "personalizationDesc": "Customize Profile & Location",
+    "activeLocation": "Active Location",
+    "session": "Session",
+    "logout": "Sign Out",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteConfirmTitle": "Delete Account?",
+    "deleteConfirmDesc": "This action cannot be undone. All your progress, goals, and logged data will be permanently wiped.",
+    "typeToDelete": "Type \"DELETE\" to confirm",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete Everything",
+    "editProfile": "Edit Profile",
+    "personalizeExp": "Personalize your Mizan experience",
+    "editAll": "Edit All",
+    "city": "City",
+    "country": "Country",
+    "titles": {
+      "mubtadi": "Mubtadi",
+      "talib": "Talib",
+      "salik": "Salik",
+      "mujtahid": "Mujtahid",
+      "muttaqi": "Muttaqi",
+      "rabbani": "Rabbani"
+    },
+    "badges": {
+      "1": { "name": "First Salat", "desc": "Logged your first prayer" },
+      "2": { "name": "Water Scholar", "desc": "Completed daily water goal" },
+      "3": { "name": "Career Starter", "desc": "First task completed" },
+      "4": { "name": "Knowledge Seeker", "desc": "Read a daily quote" },
+      "5": { "name": "Streak 3", "desc": "3 Day active streak" },
+      "6": { "name": "Half Hero", "desc": "Reached 500 Mizan points" },
+      "7": { "name": "Consistent", "desc": "Logged 7 days in a row" },
+      "8": { "name": "Balanced", "desc": "Deen, Career, Health all 100%" }
+    },
+    "basicInfo": "Basic Info",
+    "fullName": "Full Name",
+    "age": "Age",
+    "fitness": "Fitness",
+    "fitnessLevel": "Fitness Level",
+    "locationAndCalc": "Location & Calculation",
+    "country": "Country",
+    "city": "City",
+    "calculationMethod": "Calculation Method",
+    "careerGoalLabel": "Main Career Goal",
+    "saveChanges": "Save Changes",
+    "xp": "XP"
+  }
+}
+

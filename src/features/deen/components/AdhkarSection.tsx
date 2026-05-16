@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, ChevronRight, ChevronLeft, RotateCcw, Loader2 } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '../../services/firebase';
+import { db, handleFirestoreError, OperationType } from '../../../services/firebase';
 import { doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
-import { useFirebase } from '../../FirebaseContext';
+import { useFirebase } from '../../../FirebaseContext';
 import confetti from 'canvas-confetti';
+import { useTranslation } from 'react-i18next';
+import { ArabicText } from '../../../components/ui/ArabicText';
 
 interface AdhkarItem {
   id: string;
@@ -23,6 +25,7 @@ const MORNING_ADHKAR: AdhkarItem[] = [
 ];
 
 export const AdhkarSection: React.FC = () => {
+  const { t } = useTranslation();
   const [type, setType] = useState<'morning' | 'evening'>('morning');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -92,13 +95,13 @@ export const AdhkarSection: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
-        {(['morning', 'evening'] as const).map(t => (
+        {(['morning', 'evening'] as const).map(tName => (
           <button 
-            key={t}
-            onClick={() => { setType(t); setCurrentIndex(0); setCounts({}); }}
-            className={`flex-1 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${type === t ? 'bg-brand-forest text-white shadow-lg' : 'bg-brand-forest/5 text-brand-forest/40'}`}
+            key={tName}
+            onClick={() => { setType(tName); setCurrentIndex(0); setCounts({}); }}
+            className={`flex-1 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${type === tName ? 'bg-brand-forest text-white shadow-lg' : 'bg-brand-forest/5 text-brand-forest/40'}`}
           >
-            {t}
+            {t(`deen.adhkar.${tName}`, tName)}
           </button>
         ))}
       </div>
@@ -117,16 +120,16 @@ export const AdhkarSection: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="flex-1 flex flex-col items-center justify-center"
+            className="flex-1 flex flex-col items-center justify-center w-full"
           >
-            <div className="text-3xl font-display leading-loose text-brand-forest mb-6 p-4">
-              {currentItem.arabic}
-            </div>
+            <ArabicText className="text-3xl text-brand-forest mb-4 px-4">
+              {t(`deen.adhkar.${currentItem.id}.arabic`, currentItem.arabic)}
+            </ArabicText>
             <p className="text-sm font-bold text-brand-gold italic mb-2 tracking-tight">
-              {currentItem.transliteration}
+              {t(`deen.adhkar.${currentItem.id}.transliteration`, currentItem.transliteration)}
             </p>
             <p className="text-[10px] text-brand-forest/40 leading-relaxed max-w-xs italic uppercase font-bold tracking-widest">
-              "{currentItem.translation}"
+              "{t(`deen.adhkar.${currentItem.id}.translation`, currentItem.translation)}"
             </p>
           </motion.div>
         </AnimatePresence>
@@ -168,7 +171,7 @@ export const AdhkarSection: React.FC = () => {
              onClick={() => setCounts({ ...counts, [currentItem.id]: 0 })}
              className="text-[10px] font-black uppercase tracking-widest text-brand-forest/20 flex items-center gap-2 mx-auto"
           >
-            <RotateCcw size={12} /> Reset dhikr
+            <RotateCcw size={12} /> {t('deen.adhkar.reset', 'Reset dhikr')}
           </button>
         </div>
       </div>

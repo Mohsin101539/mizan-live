@@ -1,11 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Scheherazade+New:wght@400;700&family=Outfit:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800;900&display=swap');
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/hind-siliguri/400.css";
+@import "@fontsource/hind-siliguri/500.css";
+@import "@fontsource/hind-siliguri/600.css";
+@import "@fontsource/hind-siliguri/700.css";
+@import "@fontsource/noto-serif-bengali/400.css";
+@import "@fontsource/noto-serif-bengali/600.css";
+@import "@fontsource/noto-serif-bengali/700.css";
+@import "@fontsource/amiri/400.css";
+@import "@fontsource/amiri/700.css";
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", sans-serif;
-  --font-arabic: "Scheherazade New", serif;
-  --font-health: "Nunito", sans-serif;
+  --font-display: "Inter", sans-serif;
+  --font-arabic: "Amiri", serif;
+  --font-bengali: "Hind Siliguri", sans-serif;
+  --font-bengali-serif: "Noto Serif Bengali", serif;
 
   --color-brand-forest: #1B4332;
   --color-brand-gold: #D4A853;
@@ -16,6 +29,17 @@
 
   --radius-xl: 16px;
   --radius-2xl: 24px;
+}
+
+@layer base {
+  :root[lang="bn"] {
+    --font-sans: "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Noto Serif Bengali", serif;
+  }
+
+  :root[lang="bn"] * {
+    letter-spacing: normal !important;
+  }
 }
 
 @layer base {
@@ -58,7 +82,7 @@
 
 /* Arabic text optimization */
 .arabic-text {
-  @apply font-arabic leading-relaxed text-right;
+  @apply font-arabic leading-[1.8] py-4;
   direction: rtl;
 }
 

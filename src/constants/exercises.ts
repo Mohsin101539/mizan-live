@@ -1,0 +1,73 @@
+import { Exercise } from '../types';
+
+export const EXERCISE_LIBRARY: Exercise[] = [
+  // UPPER BODY
+  { id: 'push-ups', name: 'Push-Ups', category: 'upper', type: 'reps',
+    sets: 3, reps: 12, restSeconds: 60,
+    tip: 'Lower chest to 2cm above floor. Keep elbows at 45°, not flared out.' },
+  { id: 'pike-push-ups', name: 'Pike Push-Ups', category: 'upper', type: 'reps',
+    sets: 3, reps: 10, restSeconds: 60,
+    tip: 'Form an inverted V with your hips. Lower your head toward the floor.' },
+  { id: 'tricep-dips', name: 'Tricep Dips', category: 'upper', type: 'reps',
+    sets: 3, reps: 12, restSeconds: 60,
+    tip: 'Use a chair. Keep your back close to the surface and elbows pointing back.' },
+  { id: 'diamond-push-ups', name: 'Diamond Push-Ups', category: 'upper', type: 'reps',
+    sets: 3, reps: 8, restSeconds: 60,
+    tip: 'Form a diamond with thumbs and index fingers. Targets triceps intensely.' },
+  { id: 'superman-hold', name: 'Superman Hold', category: 'upper', type: 'duration',
+    sets: 3, durationSeconds: 30, restSeconds: 45,
+    tip: 'Lift arms and legs simultaneously. Squeeze glutes at the top. Hold steady.' },
+
+  // LOWER BODY
+  { id: 'squats', name: 'Bodyweight Squats', category: 'lower', type: 'reps',
+    sets: 3, reps: 15, restSeconds: 60,
+    tip: 'Sit back like into a chair. Knees behind toes, chest up, go to 90°.' },
+  { id: 'lunges', name: 'Lunges', category: 'lower', type: 'reps',
+    sets: 3, reps: 12, restSeconds: 60,
+    tip: 'Step forward, lower back knee toward floor. Push through front heel to return.' },
+  { id: 'glute-bridges', name: 'Glute Bridges', category: 'lower', type: 'reps',
+    sets: 3, reps: 15, restSeconds: 45,
+    tip: 'Feet flat, drive hips up explosively. Squeeze glutes hard at the top for 1 second.' },
+  { id: 'calf-raises', name: 'Calf Raises', category: 'lower', type: 'reps',
+    sets: 3, reps: 20, restSeconds: 45,
+    tip: 'Rise fully onto your toes. Hold the top for 1 second. Lower slowly.' },
+  { id: 'jump-squats', name: 'Jump Squats', category: 'lower', type: 'reps',
+    sets: 3, reps: 10, restSeconds: 90,
+    tip: 'Squat to 90°, explode upward. Land softly on the balls of your feet.' },
+  { id: 'wall-sit', name: 'Wall Sit', category: 'lower', type: 'duration',
+    sets: 3, durationSeconds: 45, restSeconds: 60,
+    tip: 'Back flat against wall. Thighs parallel to floor. Do not rest hands on knees.' },
+
+  // CORE
+  { id: 'plank', name: 'Plank', category: 'core', type: 'duration',
+    sets: 3, durationSeconds: 45, restSeconds: 45,
+    tip: 'Straight line from head to heels. Brace your core. Do not let hips sag or rise.' },
+  { id: 'crunches', name: 'Crunches', category: 'core', type: 'reps',
+    sets: 3, reps: 15, restSeconds: 45,
+    tip: 'Lift shoulder blades only — not your lower back. Chin tucked, hands light behind head.' },
+  { id: 'leg-raises', name: 'Leg Raises', category: 'core', type: 'reps',
+    sets: 3, reps: 12, restSeconds: 45,
+    tip: 'Lower back pressed into floor throughout. Lower legs slowly, do not let them drop.' },
+  { id: 'russian-twists', name: 'Russian Twists', category: 'core', type: 'reps',
+    sets: 3, reps: 20, restSeconds: 45,
+    tip: 'Lean back slightly, keep feet off floor. Rotate torso fully each side.' },
+  { id: 'mountain-climbers', name: 'Mountain Climbers', category: 'core', type: 'duration',
+    sets: 3, durationSeconds: 30, restSeconds: 45,
+    tip: 'Maintain a perfect plank position. Drive knees to chest as fast as you can.' },
+
+  // CARDIO
+  { id: 'jumping-jacks', name: 'Jumping Jacks', category: 'cardio', type: 'duration',
+    sets: 3, durationSeconds: 45, restSeconds: 30,
+    tip: 'Arms fully extended overhead. Land softly on balls of feet to protect joints.' },
+  { id: 'high-knees', name: 'High Knees', category: 'cardio', type: 'duration',
+    sets: 3, durationSeconds: 30, restSeconds: 30,
+    tip: 'Drive knees to hip height. Pump arms in opposite rhythm. Stay light on your feet.' },
+  { id: 'burpees', name: 'Burpees', category: 'cardio', type: 'reps',
+    sets: 3, reps: 8, restSeconds: 90,
+    tip: 'Squat → jump back to plank → optional push-up → jump up with arms overhead.' },
+
+  // RECOVERY
+  { id: 'childs-pose', name: "Child's Pose Stretch", category: 'recovery', type: 'duration',
+    sets: 1, durationSeconds: 60, restSeconds: 0,
+    tip: 'Kneel, sit back on heels, extend arms forward on the floor. Breathe deeply. Relax.' },
+];

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Droplets, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WaterTrackerProps {
   glasses: number;
@@ -8,13 +9,14 @@ interface WaterTrackerProps {
 }
 
 export const WaterTracker: React.FC<WaterTrackerProps> = ({ glasses, onAdd }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-brand-forest/5 font-health">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-black flex items-center gap-2">
-          <Droplets className="text-blue-500" size={20} /> Water Intake
+          <Droplets className="text-blue-500" size={20} /> {t('health.waterIntake', 'Water Intake')}
         </h3>
-        <span className="text-sm font-black opacity-40 uppercase tracking-widest">{glasses} / 8 Glasses</span>
+        <span className="text-sm font-black opacity-40 uppercase tracking-widest">{glasses} / 8 {t('health.glasses', 'Glasses')}</span>
       </div>
 
       <div className="flex justify-between gap-2 mb-8 px-1">

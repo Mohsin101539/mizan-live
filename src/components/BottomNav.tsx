@@ -1,6 +1,6 @@
 import React from 'react';
 import { Home, Moon, Briefcase, Heart, Star } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 export type TabType = 'home' | 'deen' | 'career' | 'health' | 'rewards';
 
@@ -9,15 +9,17 @@ interface BottomNavProps {
   onTabChange: (tab: TabType) => void;
 }
 
-const tabs: { id: TabType; icon: React.ElementType; label: string }[] = [
-  { id: 'home', icon: Home, label: 'Home' },
-  { id: 'deen', icon: Moon, label: 'Deen' },
-  { id: 'career', icon: Briefcase, label: 'Career' },
-  { id: 'health', icon: Heart, label: 'Health' },
-  { id: 'rewards', icon: Star, label: 'Profile' },
-];
-
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
+  const { t } = useTranslation();
+
+  const tabs: { id: TabType; icon: React.ElementType; label: string }[] = [
+    { id: 'home', icon: Home, label: t('nav.home', 'Home') },
+    { id: 'deen', icon: Moon, label: t('nav.deen', 'Deen') },
+    { id: 'career', icon: Briefcase, label: t('nav.career', 'Career') },
+    { id: 'health', icon: Heart, label: t('nav.health', 'Health') },
+    { id: 'rewards', icon: Star, label: t('nav.rewards', 'Profile') },
+  ];
+
   return (
     <div className="flex items-center flex-1 justify-around h-12">
       {tabs.map((tab) => {

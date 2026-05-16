@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { db, handleFirestoreError, OperationType } from '../../services/firebase';
+import { db, handleFirestoreError, OperationType } from '../../../services/firebase';
 import { doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, arrayUnion } from 'firebase/firestore';
-import { useFirebase } from '../../FirebaseContext';
+import { useFirebase } from '../../../FirebaseContext';
 import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useTranslation } from 'react-i18next';
 
 interface SunnahAct {
   id: string;
@@ -23,6 +24,7 @@ const SUNNAH_ACTS: SunnahAct[] = [
 ];
 
 export const SunnahTracker: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useFirebase();
   const [completed, setCompleted] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,10 +100,10 @@ export const SunnahTracker: React.FC = () => {
           >
             <div className="flex-1">
               <h3 className={`font-black text-lg ${isDone ? 'text-brand-forest/40 line-through' : 'text-brand-forest'}`}>
-                {act.title}
+                {t(`deen.sunnah.${act.id}.title`, act.title)}
               </h3>
               <p className="text-[10px] font-bold uppercase tracking-widest text-brand-forest/40 mt-1">
-                {act.description}
+                {t(`deen.sunnah.${act.id}.description`, act.description)}
               </p>
             </div>
 
